@@ -1,126 +1,46 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import api from '@/services/api';
-import { Mail, ArrowUpRight, ArrowDownRight, Users, FileCheck } from 'lucide-react';
-
-function DisposisiModal({ surat, onClose, onDisposisiSubmit }) {
-    const [tujuan, setTujuan] = useState('');
-    const [instruksi, setInstruksi] = useState('');
-    const [catatan, setCatatan] = useState('');
-
-    if (!surat) return null;
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        onDisposisiSubmit(surat.id, {
-            tujuan,
-            instruksi,
-            catatan,
-        });
-    };
-
-    return (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl shadow-lg w-full max-w-2xl p-8 m-4">
-                <h2 className="text-2xl font-bold text-white mb-6">Disposisi Surat: {surat.perihal}</h2>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label htmlFor="tujuan" className="block text-sm font-medium text-gray-400 mb-2">Teruskan Kepada</label>
-                        <input
-                            id="tujuan"
-                            type="text"
-                            value={tujuan}
-                            onChange={(e) => setTujuan(e.target.value)}
-                            className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="e.g., Sekretaris, Kepala Bagian Keuangan"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="instruksi" className="block text-sm font-medium text-gray-400 mb-2">Instruksi</label>
-                        <textarea
-                            id="instruksi"
-                            rows="3"
-                            value={instruksi}
-                            onChange={(e) => setInstruksi(e.target.value)}
-                            className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="e.g., Mohon ditindaklanjuti, Untuk diarsipkan"
-                            required
-                        ></textarea>
-                    </div>
-                    <div>
-                        <label htmlFor="catatan" className="block text-sm font-medium text-gray-400 mb-2">Catatan (Opsional)</label>
-                        <textarea
-                            id="catatan"
-                            rows="3"
-                            value={catatan}
-                            onChange={(e) => setCatatan(e.target.value)}
-                            className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Tambahkan catatan atau informasi tambahan..."
-                        ></textarea>
-                    </div>
-                    <div className="flex justify-end gap-4 pt-4">
-                        <button type="button" onClick={onClose} className="px-6 py-2 text-sm font-semibold text-gray-300 rounded-lg hover:bg-gray-800 focus:outline-none">
-                            Batal
-                        </button>
-                        <button type="submit" className="px-6 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900">
-                            Kirim Disposisi
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    );
-}
+import { ArrowUpRight, ArrowDownRight, Users, FileCheck, Share2, Eye } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 
 export default function DashboardPage() {
+    const { user } = useAuth();
+    const router = useRouter();
     const [stats, setStats] = useState(null);
-    const [disposisiList, setDisposisiList] = useState([]);
-    const [selectedSurat, setSelectedSurat] = useState(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [suratList, setSuratList] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     const fetchData = async () => {
         try {
-            const [statsRes, disposisiRes] = await Promise.all([
-                api.get('/dashboard/stats'),
-                api.get('/surat?status=diajukan')
+            const [statsRes, suratRes] = await Promise.all([
+                api.get('/dashboard/stats').catch(() => ({ data: null })),
+                api.get('/surat').catch(() => ({ data: [] }))
             ]);
             setStats(statsRes.data);
-            setDisposisiList(disposisiRes.data);
+            
+            // Menyesuaikan daftar surat yang tampil di dasbor berdasarkan hak akses
+            // - User biasa: suratRes.data secara otomatis hanya memuat surat disposisi untuknya
+            // - Pimpinan/Staff/Admin: memfilter surat masuk terbaru agar dasbor tetap hidup dan informatif
+            const list = suratRes.data || [];
+            const filteredList = user?.role === 'User' 
+                ? list 
+                : list.filter(s => s.jenis_surat === 'masuk').slice(0, 5);
+                
+            setSuratList(filteredList);
         } catch (error) {
             console.error('Failed to fetch dashboard data', error);
+        } finally {
+            setLoading(false);
         }
     };
 
     useEffect(() => {
         fetchData();
-    }, []);
-
-    const handleOpenModal = (surat) => {
-        setSelectedSurat(surat);
-        setIsModalOpen(true);
-    };
-
-    const handleCloseModal = () => {
-        setSelectedSurat(null);
-        setIsModalOpen(false);
-    };
-
-    const handleDisposisiSubmit = async (suratId, disposisiData) => {
-        try {
-            const payload = {
-                ...disposisiData,
-                surat_id: suratId
-            };
-            await api.post('/disposisi', payload);
-
-            fetchData();
-            handleCloseModal();
-        } catch (error) {
-            console.error('Failed to submit disposisi', error);
-        }
-    };
+    }, [user]);
 
     const cards = [
         {
@@ -136,8 +56,8 @@ export default function DashboardPage() {
             color: 'bg-blue-500/10 text-blue-500',
         },
         {
-            label: 'Menunggu Disposisi',
-            value: disposisiList.length || 0,
+            label: user?.role === 'User' ? 'Surat Disposisi Anda' : 'Surat Masuk Aktif',
+            value: suratList.length || 0,
             icon: FileCheck,
             color: 'bg-yellow-500/10 text-yellow-500',
         },
@@ -149,18 +69,41 @@ export default function DashboardPage() {
         },
     ];
 
+    // Menyusun ulang data format dari backend agar kompatibel dengan Recharts
+    const chartData = stats?.chart?.labels?.map((label, index) => ({
+        name: label,
+        Masuk: stats.chart.dataMasuk[index] || 0,
+        Keluar: stats.chart.dataKeluar[index] || 0,
+    })) || [];
+
+    const CustomTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+            return (
+                <div className="bg-gray-950 border border-gray-800 p-3 rounded-xl shadow-xl">
+                    <p className="text-white font-bold text-sm mb-1">{label}</p>
+                    {payload.map((entry, index) => (
+                        <p key={index} className="text-xs font-medium" style={{ color: entry.color }}>
+                            {entry.name}: {entry.value}
+                        </p>
+                    ))}
+                </div>
+            );
+        }
+        return null;
+    };
+
     return (
         <div className="space-y-8">
             <div>
                 <h1 className="text-3xl font-bold text-white mb-2">Dashboard Overview</h1>
-                <p className="text-gray-400">Welcome back to SimSurat Dashboard</p>
+                <p className="text-gray-400">Selamat datang kembali di sistem SimSurat</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {cards.map((card, i) => {
                     const Icon = card.icon;
                     return (
-                        <div key={i} className="bg-gray-900 border border-gray-800 p-6 rounded-2xl">
+                        <div key={i} className="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-sm">
                             <div className="flex items-start justify-between">
                                 <div>
                                     <p className="text-gray-400 text-sm font-medium">{card.label}</p>
@@ -175,46 +118,88 @@ export default function DashboardPage() {
                 })}
             </div>
 
-            <div className="bg-gray-900 border border-gray-800 p-6 rounded-2xl">
-                <h3 className="text-xl font-bold text-white mb-6">Statistik Bulanan</h3>
-                <div className="h-64 flex items-center justify-center text-gray-500 bg-gray-950/50 rounded-xl border border-dashed border-gray-800">
-                    Chart Component Placeholder (Requires Chart.js or Recharts)
-                </div>
-            </div>
-
-            <div className="bg-gray-900 border border-gray-800 p-6 rounded-2xl">
-                <h3 className="text-xl font-bold text-white mb-6">Menunggu Disposisi</h3>
-                <div className="space-y-4">
-                    {disposisiList.length > 0 ? (
-                        disposisiList.map((surat) => (
-                            <div key={surat.id} className="flex items-center justify-between bg-gray-800/50 p-4 rounded-lg hover:bg-gray-800 transition-colors">
-                                <div>
-                                    <p className="font-semibold text-white">{surat.perihal}</p>
-                                    <p className="text-sm text-gray-400">{surat.nomor_surat} - Dari: {surat.pengirim}</p>
-                                </div>
-                                <button
-                                    onClick={() => handleOpenModal(surat)}
-                                    className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
-                                >
-                                    Lihat & Disposisi
-                                </button>
-                            </div>
-                        ))
+            {/* Grafik Statistik Bulanan (Recharts Integration) */}
+            <div className="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-sm">
+                <h3 className="text-xl font-bold text-white mb-6">Statistik Persuratan Bulanan</h3>
+                <div className="h-80 w-full pt-2">
+                    {chartData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <XAxis dataKey="name" stroke="#6b7280" fontSize={12} tickLine={false} axisLine={{ stroke: '#374151' }} />
+                                <YAxis stroke="#6b7280" fontSize={12} tickLine={false} axisLine={{ stroke: '#374151' }} />
+                                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255, 255, 255, 0.02)' }} />
+                                <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px', color: '#9ca3af' }} />
+                                <Bar dataKey="Masuk" fill="#10b981" radius={[6, 6, 0, 0]} maxBarSize={30} />
+                                <Bar dataKey="Keluar" fill="#3b82f6" radius={[6, 6, 0, 0]} maxBarSize={30} />
+                            </BarChart>
+                        </ResponsiveContainer>
                     ) : (
-                        <div className="text-center py-8 text-gray-500 bg-gray-950/50 rounded-xl border border-dashed border-gray-800">
-                            Tidak ada surat yang memerlukan disposisi saat ini.
+                        <div className="h-full flex items-center justify-center text-gray-500 bg-gray-950/30 rounded-xl border border-dashed border-gray-800 text-sm">
+                            Memuat data statistik...
                         </div>
                     )}
                 </div>
             </div>
 
-            {isModalOpen && (
-                <DisposisiModal
-                    surat={selectedSurat}
-                    onClose={handleCloseModal}
-                    onDisposisiSubmit={handleDisposisiSubmit}
-                />
-            )}
+            {/* Daftar Surat Masuk / Tugas Disposisi */}
+            <div className="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-sm">
+                <h3 className="text-xl font-bold text-white mb-6">
+                    {user?.role === 'User' ? 'Surat & Tugas Disposisi Anda' : 'Surat Masuk Terbaru'}
+                </h3>
+                <div className="space-y-4">
+                    {loading ? (
+                        <div className="text-center py-8 text-gray-500 text-sm">Memuat data surat...</div>
+                    ) : suratList.length > 0 ? (
+                        suratList.map((surat) => (
+                            <div key={surat.id} className="flex flex-col md:flex-row md:items-center justify-between bg-gray-950/50 border border-gray-800/60 p-4 rounded-xl hover:border-gray-700 transition-all gap-4">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="px-2 py-0.5 rounded text-xs font-medium bg-emerald-500/10 text-emerald-400 uppercase tracking-wider">
+                                            {surat.jenis_surat}
+                                        </span>
+                                        <span className="text-xs text-gray-500 font-mono">{surat.nomor_surat}</span>
+                                    </div>
+                                    <p className="font-semibold text-white text-base">{surat.perihal}</p>
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        Dari: <span className="text-gray-300">{surat.pengirim}</span> • Tanggal: {surat.tanggal ? new Date(surat.tanggal).toLocaleDateString('id-ID') : '-'}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-2 self-end md:self-center">
+                                    <button
+                                        onClick={() => router.push(`/dashboard/surat/${surat.id}`)}
+                                        className="p-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg transition-colors tooltip"
+                                        title="Lihat Detail Surat"
+                                    >
+                                        <Eye size={18} />
+                                    </button>
+                                    {surat.jenis_surat === 'masuk' && user?.role !== 'User' && (
+                                        <button
+                                            onClick={() => router.push(`/dashboard/surat/${surat.id}/disposisi`)}
+                                            className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-lg transition-all shadow-md shadow-blue-600/20"
+                                        >
+                                            <Share2 size={14} />
+                                            Disposisi
+                                        </button>
+                                    )}
+                                    {user?.role === 'User' && (
+                                        <button
+                                            onClick={() => router.push(`/dashboard/surat/${surat.id}/disposisi`)}
+                                            className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-all shadow-md shadow-emerald-600/20"
+                                        >
+                                            <Share2 size={14} />
+                                            Lihat Tugas / Instruksi
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="text-center py-8 text-gray-500 bg-gray-950/30 rounded-xl border border-dashed border-gray-800 text-sm">
+                            Tidak ada surat yang terdaftar di bagian ini.
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }
