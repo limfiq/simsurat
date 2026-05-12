@@ -1,12 +1,13 @@
 const Surat = require('../models/Surat');
 const Log = require('../models/Log');
+const Disposisi = require('../models/Disposisi');
 const path = require('path');
 const fs = require('fs');
 const { Op } = require('sequelize');
 
 exports.createSurat = async (req, res) => {
     try {
-        const { nomor_surat, jenis_surat, tanggal, perihal, pengirim, penerima } = req.body;
+        const { nomor_surat, jenis_surat, tanggal, perihal, pengirim, penerima, tanggal_diterima, sifat_surat } = req.body;
         const file = req.file;
 
         const surat = await Surat.create({
@@ -16,6 +17,8 @@ exports.createSurat = async (req, res) => {
             perihal,
             pengirim,
             penerima,
+            tanggal_diterima: tanggal_diterima ? tanggal_diterima : null,
+            sifat_surat: sifat_surat || 'biasa',
             file_url: file ? file.path : null,
             createdBy: req.user.id,
             status: 'draft' // Default status
@@ -40,7 +43,26 @@ exports.getAllSurat = async (req, res) => {
         if (req.query.jenis_surat) whereClause.jenis_surat = req.query.jenis_surat;
         if (req.query.status) whereClause.status = req.query.status;
 
-        const surat = await Surat.findAll({ where: whereClause });
+        const includeOptions = [];
+
+        // Jika role adalah 'User' biasa, filter berdasarkan tujuan disposisi yang mengarah ke mereka
+        if (req.user.role === 'User') {
+            includeOptions.push({
+                model: Disposisi,
+                where: {
+                    [Op.or]: [
+                        { tujuan: { [Op.like]: `%${req.user.nama}%` } },
+                        { tujuan: { [Op.like]: `%${req.user.role}%` } }
+                    ]
+                },
+                required: true // Hanya surat yang memiliki disposisi ke user ini yang akan tampil
+            });
+        }
+
+        const surat = await Surat.findAll({ 
+            where: whereClause,
+            include: includeOptions 
+        });
         res.json(surat);
     } catch (error) {
         console.warn("Database query failed in getAllSurat, using mock data:", error.message);
@@ -81,6 +103,7 @@ exports.getAllSurat = async (req, res) => {
         const filteredMock = mockSurat.filter(item => {
             if (req.query.jenis_surat && item.jenis_surat !== req.query.jenis_surat) return false;
             if (req.query.status && item.status !== req.query.status) return false;
+            if (req.user.role === 'User') return false; // Default mock fallback tidak menampilkan apa-apa untuk 'User' karena tidak ada relasi disposisi di mock data
             return true;
         });
         res.json(filteredMock);
@@ -104,13 +127,15 @@ exports.updateSurat = async (req, res) => {
         if (!surat) return res.status(404).json({ message: 'Surat not found' });
 
         // Update fields
-        const { nomor_surat, tanggal, perihal, pengirim, penerima, status } = req.body;
+        const { nomor_surat, tanggal, perihal, pengirim, penerima, tanggal_diterima, sifat_surat, status } = req.body;
 
         surat.nomor_surat = nomor_surat || surat.nomor_surat;
         surat.tanggal = tanggal || surat.tanggal;
         surat.perihal = perihal || surat.perihal;
         surat.pengirim = pengirim || surat.pengirim;
         surat.penerima = penerima || surat.penerima;
+        surat.tanggal_diterima = tanggal_diterima ? tanggal_diterima : surat.tanggal_diterima;
+        surat.sifat_surat = sifat_surat || surat.sifat_surat;
 
         if (status && ['draft', 'diajukan'].includes(status)) {
             surat.status = status;

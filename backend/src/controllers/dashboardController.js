@@ -1,6 +1,7 @@
 const Surat = require('../models/Surat');
 const Log = require('../models/Log');
 const User = require('../models/User');
+const { Op } = require('sequelize');
 
 exports.getStats = async (req, res) => {
     try {
@@ -20,11 +21,42 @@ exports.getStats = async (req, res) => {
             totalUsers = 12;
         }
 
-        // Simple mock for monthly data
+        // Get actual monthly data from database
+        const currentYear = new Date().getFullYear();
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const dataMasuk = [];
+        const dataKeluar = [];
+
+        for (let i = 0; i < 12; i++) {
+            const startDate = new Date(currentYear, i, 1);
+            const endDate = new Date(currentYear, i + 1, 0);
+
+            const masuk = await Surat.count({
+                where: {
+                    jenis_surat: 'masuk',
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                }
+            }).catch(() => 0);
+
+            const keluar = await Surat.count({
+                where: {
+                    jenis_surat: 'keluar',
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                }
+            }).catch(() => 0);
+
+            dataMasuk.push(masuk);
+            dataKeluar.push(keluar);
+        }
+
         const monthlyStats = {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            dataMasuk: [12, 19, 3, 5, 2, 3],
-            dataKeluar: [2, 3, 20, 5, 1, 4],
+            labels: months,
+            dataMasuk: dataMasuk,
+            dataKeluar: dataKeluar,
         };
 
         res.json({

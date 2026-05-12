@@ -17,7 +17,7 @@ router.get('/:id', suratController.getSuratById);
 // Admin & Petugas Routes
 router.post('/', roleMiddleware(['Admin', 'Petugas']), upload.single('file'), suratController.createSurat);
 router.put('/:id', roleMiddleware(['Admin', 'Petugas']), upload.single('file'), suratController.updateSurat);
-router.delete('/:id', roleMiddleware(['Admin']), suratController.deleteSurat);
+router.delete('/:id', roleMiddleware(['Admin', 'Petugas']), suratController.deleteSurat);
 
 // Pimpinan Routes
 router.put('/approve/:id', roleMiddleware(['Pimpinan']), suratController.approveSurat);

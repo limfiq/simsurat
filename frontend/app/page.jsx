@@ -46,7 +46,8 @@ export default function LandingPage() {
             <main className="flex-1 flex flex-col items-center justify-center px-6 pt-20">
                 <div className="text-center max-w-2xl mx-auto mb-12">
                     <h1 className="text-5xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-400">
-                        Cek Validitas <br /> Surat Keluar
+                        Cek Validitas Surat Keluar<br />
+                        STIKOM PGRI Banyuwangi
                     </h1>
                     <p className="text-gray-400 text-lg">
                         Masukkan nomor surat untuk memverifikasi keaslian dan status surat yang diterbitkan oleh instansi kami.

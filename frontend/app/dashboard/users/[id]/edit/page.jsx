@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/services/api';
 import { ArrowLeft, Save } from 'lucide-react';
@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 export default function EditUserPage({ params }) {
     const router = useRouter();
-    const { id } = use(params);
+    const { id } = params;
     const [formData, setFormData] = useState({
         nama: '',
         email: '',

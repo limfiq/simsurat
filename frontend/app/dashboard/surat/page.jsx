@@ -113,11 +113,11 @@ export default function SuratListPage() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 flex justify-end gap-2">
-                                            {user?.role === 'Pimpinan' && item.jenis_surat === 'masuk' && (
+                                            {item.jenis_surat === 'masuk' && (
                                                 <Link
                                                     href={`/dashboard/surat/${item.id}/disposisi`}
                                                     className="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg hover:bg-indigo-500/20 tooltip"
-                                                    title="Disposisi"
+                                                    title="Lihat/Buat Disposisi"
                                                 >
                                                     <Share2 size={18} />
                                                 </Link>

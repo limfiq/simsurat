@@ -3,12 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { LayoutDashboard, Mail, FileText, Users, LogOut, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Mail, FileText, Users, BarChart3 } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function Sidebar() {
     const pathname = usePathname();
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
 
     const links = [
         { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -28,11 +28,14 @@ export default function Sidebar() {
 
     return (
         <div className="flex flex-col h-screen w-64 bg-gray-900 text-white border-r border-gray-800">
-            <div className="p-6 border-b border-gray-800">
-                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
-                    SimSurat
-                </h1>
-                <p className="text-xs text-gray-500 mt-1">Sistem Manajemen Surat</p>
+            <div className="p-6 border-b border-gray-800 flex items-center gap-3">
+                <img src="/logo.png" alt="SimSurat Logo" className="w-10 h-10 object-contain" />
+                <div>
+                    <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400 leading-none">
+                        SimSurat
+                    </h1>
+                    <p className="text-xs text-gray-500 mt-1.5">Sistem Manajemen Surat</p>
+                </div>
             </div>
 
             <nav className="flex-1 p-4 space-y-2">
@@ -56,25 +59,6 @@ export default function Sidebar() {
                     );
                 })}
             </nav>
-
-            <div className="p-4 border-t border-gray-800">
-                <div className="flex items-center gap-3 px-4 py-3 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center font-bold text-sm">
-                        {user?.nama?.charAt(0) || 'U'}
-                    </div>
-                    <div className="flex-1 overflow-hidden">
-                        <p className="text-sm font-medium truncate">{user?.nama}</p>
-                        <p className="text-xs text-gray-500 truncate">{user?.role}</p>
-                    </div>
-                </div>
-                <button
-                    onClick={logout}
-                    className="w-full flex items-center gap-3 px-4 py-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors text-sm"
-                >
-                    <LogOut size={18} />
-                    Sign Out
-                </button>
-            </div>
         </div>
     );
 }

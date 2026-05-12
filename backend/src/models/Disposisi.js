@@ -38,7 +38,7 @@ const Disposisi = db.define('Disposisi', {
         allowNull: true
     },
     batas_waktu: {
-        type: DataTypes.DATEONLY,
+        type: DataTypes.DATE,
         allowNull: true
     }
 }, {

@@ -21,10 +21,12 @@ export default function LoginPage() {
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
             <div className="w-full max-w-md p-8 bg-gray-800/50 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-700/50">
                 <div className="text-center mb-8">
+                    <img src="/logo.png" alt="SimSurat Logo" className="w-32 h-32 object-contain mx-auto mb-4" width={100} height={100} />
                     <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
-                        SimSurat
+                        Sim Surat
+                        <br />
+                        STIKOM Banyuwangi
                     </h1>
-                    <p className="text-gray-400 mt-2">Masuk untuk melanjutkan</p>
                 </div>
 
                 {error && (

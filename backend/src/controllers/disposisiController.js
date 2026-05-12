@@ -15,8 +15,8 @@ exports.createDisposisi = async (req, res) => {
             sender_id: req.user.id,
             tujuan,
             instruksi,
-            catatan,
-            batas_waktu
+            catatan: catatan || null,
+            batas_waktu: batas_waktu ? batas_waktu : null
         });
 
         // Update surat status optional, maybe mark as 'didisposisikan'

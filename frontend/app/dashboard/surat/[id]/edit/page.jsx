@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/services/api';
 import { ArrowLeft, Save } from 'lucide-react';
@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 export default function EditSuratPage({ params }) {
     const router = useRouter();
-    const { id } = use(params);
+    const { id } = params;
     const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState({
         nomor_surat: '',
@@ -17,7 +17,9 @@ export default function EditSuratPage({ params }) {
         perihal: '',
         pengirim: '',
         penerima: '',
-        status: ''
+        status: '',
+        tanggal_diterima: '',
+        sifat_surat: 'biasa'
     });
 
     useEffect(() => {
@@ -27,7 +29,10 @@ export default function EditSuratPage({ params }) {
     const fetchSurat = async () => {
         try {
             const res = await api.get(`/surat/${id}`);
-            setFormData(res.data);
+            const data = res.data;
+            if (data.tanggal) data.tanggal = data.tanggal.slice(0, 16);
+            if (data.tanggal_diterima) data.tanggal_diterima = data.tanggal_diterima.slice(0, 16);
+            setFormData(data);
             setLoading(false);
         } catch (error) {
             alert('Failed to fetch surat');
@@ -76,7 +81,7 @@ export default function EditSuratPage({ params }) {
                     <div>
                         <label className="block text-sm font-medium text-gray-400 mb-2">Tanggal</label>
                         <input
-                            type="date"
+                            type="datetime-local"
                             required
                             className="w-full px-4 py-2.5 bg-gray-950 border border-gray-700 rounded-xl text-white outline-none focus:ring-2 focus:ring-blue-500"
                             value={formData.tanggal}
@@ -126,6 +131,31 @@ export default function EditSuratPage({ params }) {
                             value={formData.penerima}
                             onChange={(e) => setFormData({ ...formData, penerima: e.target.value })}
                         />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-2">Tanggal Diterima</label>
+                        <input
+                            type="datetime-local"
+                            className="w-full px-4 py-2.5 bg-gray-950 border border-gray-700 rounded-xl text-white outline-none focus:ring-2 focus:ring-blue-500"
+                            value={formData.tanggal_diterima || ''}
+                            onChange={(e) => setFormData({ ...formData, tanggal_diterima: e.target.value })}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-2">Sifat Surat</label>
+                        <select
+                            className="w-full px-4 py-2.5 bg-gray-950 border border-gray-700 rounded-xl text-white outline-none focus:ring-2 focus:ring-blue-500"
+                            value={formData.sifat_surat || 'biasa'}
+                            onChange={(e) => setFormData({ ...formData, sifat_surat: e.target.value })}
+                        >
+                            <option value="biasa">Biasa</option>
+                            <option value="rahasia">Rahasia</option>
+                            <option value="segera">Segera</option>
+                            <option value="sangat segera">Sangat Segera</option>
+                        </select>
                     </div>
                 </div>
 

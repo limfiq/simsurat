@@ -12,7 +12,7 @@ const Surat = db.define('Surat', {
         allowNull: false
     },
     tanggal: {
-        type: DataTypes.DATEONLY,
+        type: DataTypes.DATE,
         allowNull: false
     },
     perihal: {
@@ -26,6 +26,15 @@ const Surat = db.define('Surat', {
     penerima: {
         type: DataTypes.STRING,
         allowNull: false
+    },
+    tanggal_diterima: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    sifat_surat: {
+        type: DataTypes.ENUM('sangat segera', 'segera', 'rahasia', 'biasa'),
+        defaultValue: 'biasa',
+        allowNull: true
     },
     status: {
         type: DataTypes.ENUM('draft', 'diajukan', 'disetujui', 'ditolak', 'revisi', 'selesai'),

@@ -7,7 +7,7 @@ const roleMiddleware = require('../middleware/roleMiddleware');
 router.use(authMiddleware);
 
 // Only Pimpinan can create disposisi
-router.post('/', roleMiddleware(['Pimpinan']), disposisiController.createDisposisi);
+router.post('/', roleMiddleware(['Pimpinan', 'Petugas', 'Admin']), disposisiController.createDisposisi);
 
 // All authenticated users can view disposisi (if they have access to the surat)
 router.get('/:suratId', disposisiController.getDisposisiBySurat);

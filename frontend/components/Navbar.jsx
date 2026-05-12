@@ -6,10 +6,8 @@ export default function Navbar() {
     return (
         <nav className="fixed w-full z-50 top-0 left-0 bg-gray-950/80 backdrop-blur-md border-b border-gray-800">
             <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                <Link href="/" className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-emerald-500 flex items-center justify-center font-bold text-white text-lg">
-                        S
-                    </div>
+                <Link href="/" className="flex items-center gap-3">
+                    <img src="/logo.png" alt="SimSurat Logo" className="w-10 h-10 object-contain" />
                     <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
                         SimSurat
                     </span>

@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
 import api from '@/services/api';
 import { ArrowLeft, FileText, Download, Calendar, User, Tag } from 'lucide-react';
 import Link from 'next/link';
 import QRCode from 'react-qr-code';
+import { API_BASE_URL } from '@/services/config';
 
 export default function SuratDetailPage({ params }) {
-    const { id } = use(params);
+    const { id } = params;
     const [surat, setSurat] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -30,7 +31,7 @@ export default function SuratDetailPage({ params }) {
 
     const isSuratKeluarApproved = surat.jenis_surat === 'keluar' && surat.status === 'disetujui';
     // Use a real URL based on environment or fallback to localhost
-    const validationUrl = `${window.location.origin}/?search=${encodeURIComponent(surat.nomor_surat)}`;
+    const validationUrl = typeof window !== 'undefined' ? `${window.location.origin}/?search=${encodeURIComponent(surat.nomor_surat)}` : '';
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
@@ -73,7 +74,7 @@ export default function SuratDetailPage({ params }) {
                                 <h3 className="text-gray-500 text-sm mb-1">Tanggal</h3>
                                 <div className="flex items-center gap-2 text-white">
                                     <Calendar size={16} className="text-gray-400" />
-                                    {surat.tanggal}
+                                    {surat.tanggal ? new Date(surat.tanggal).toLocaleString('id-ID') : '-'}
                                 </div>
                             </div>
                         </div>
@@ -90,6 +91,22 @@ export default function SuratDetailPage({ params }) {
                                 <div className="flex items-center gap-2 text-white">
                                     <User size={16} className="text-gray-400" />
                                     {surat.penerima}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-800">
+                            <div>
+                                <h3 className="text-gray-500 text-sm mb-1">Tanggal Diterima</h3>
+                                <div className="flex items-center gap-2 text-white">
+                                    <Calendar size={16} className="text-gray-400" />
+                                    {surat.tanggal_diterima ? new Date(surat.tanggal_diterima).toLocaleString('id-ID') : '-'}
+                                </div>
+                            </div>
+                            <div>
+                                <h3 className="text-gray-500 text-sm mb-1">Sifat Surat</h3>
+                                <div className="flex items-center gap-2 text-white capitalize">
+                                    <FileText size={16} className="text-gray-400" />
+                                    {surat.sifat_surat || 'biasa'}
                                 </div>
                             </div>
                         </div>
@@ -112,7 +129,7 @@ export default function SuratDetailPage({ params }) {
                                     </div>
                                 </div>
                                 <a
-                                    href={`http://localhost:5000/${surat.file_url}`}
+                                    href={`${API_BASE_URL}/${surat.file_url}`}
                                     target="_blank"
                                     className="p-2 hover:bg-gray-800 text-gray-400 hover:text-white rounded-lg transition-colors"
                                     download

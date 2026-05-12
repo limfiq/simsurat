@@ -15,7 +15,9 @@ export default function CreateSuratPage() {
         tanggal: '',
         perihal: '',
         pengirim: '',
-        penerima: ''
+        penerima: '',
+        tanggal_diterima: '',
+        sifat_surat: 'biasa'
     });
     const [file, setFile] = useState(null);
 
@@ -69,7 +71,7 @@ export default function CreateSuratPage() {
                     <div>
                         <label className="block text-sm font-medium text-gray-400 mb-2">Tanggal</label>
                         <input
-                            type="date"
+                            type="datetime-local"
                             required
                             className="w-full px-4 py-2.5 bg-gray-950 border border-gray-700 rounded-xl text-white outline-none focus:ring-2 focus:ring-blue-500"
                             value={formData.tanggal}
@@ -120,6 +122,31 @@ export default function CreateSuratPage() {
                             value={formData.penerima}
                             onChange={(e) => setFormData({ ...formData, penerima: e.target.value })}
                         />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-2">Tanggal Diterima</label>
+                        <input
+                            type="datetime-local"
+                            className="w-full px-4 py-2.5 bg-gray-950 border border-gray-700 rounded-xl text-white outline-none focus:ring-2 focus:ring-blue-500"
+                            value={formData.tanggal_diterima}
+                            onChange={(e) => setFormData({ ...formData, tanggal_diterima: e.target.value })}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-2">Sifat Surat</label>
+                        <select
+                            className="w-full px-4 py-2.5 bg-gray-950 border border-gray-700 rounded-xl text-white outline-none focus:ring-2 focus:ring-blue-500"
+                            value={formData.sifat_surat}
+                            onChange={(e) => setFormData({ ...formData, sifat_surat: e.target.value })}
+                        >
+                            <option value="biasa">Biasa</option>
+                            <option value="rahasia">Rahasia</option>
+                            <option value="segera">Segera</option>
+                            <option value="sangat segera">Sangat Segera</option>
+                        </select>
                     </div>
                 </div>
 
