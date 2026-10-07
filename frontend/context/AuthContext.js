@@ -44,11 +44,17 @@ export const AuthProvider = ({ children }) => {
             router.push('/dashboard');
             return { success: true };
         } catch (error) {
-            console.error('Login error:', error);
-            return {
-                success: false,
-                message: error.response?.data?.message || error.message || 'Login failed'
-            };
+                console.error('Login error:', error);
+                console.error('Error response:', error.response);
+                console.error('Error request:', error.request);
+
+                const message = error.response?.data?.message || error.message || 'Login failed';
+                const suffix = error.response ? '' : ' (Network or CORS error — lihat console browser untuk detail)';
+
+                return {
+                    success: false,
+                    message: message + suffix
+                };
         }
     };
 
